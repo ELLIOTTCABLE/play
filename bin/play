@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby -wKu
+%w[rubygems optparse].each {|dep| require dep }
+
+Version = 2
+
+options = Hash.new
+OptionParser.new do |opts|
+  opts.banner = "\
+= `play` =
+A small script to, well, play something!
+
+== Usage ==
+`play [options] Show Name`
+`play [options] Movie name`
+"
+  
+  opts.on("-p", "--padding PADDING", Integer, "Adjust padding to centre video onscreen") do |p|
+    options[:padding] = p
+  end
+  
+  opts.on_tail("--help", "Show this help") do
+    puts opts
+    exit
+  end
+  opts.on_tail("--version", "Show version") do
+    puts "I'm play #{Version}!"
+    exit
+  end
+end.parse!
+
+show = ARGV.join(' ')
+print "Playing the first show matching '#{show}': "
+
+shows = (Dir[File.expand_path('~/Downloads/News') + '/*'] + Dir[File.expand_path('~/Downloads/News/TV') + '/*']).map do |dir|
+  dir if dir =~ %r!#{File.expand_path('~/Downloads/News')}/#{show}!
+end.compact!
+
+dir = shows.sort.last
+puts dir
+
+file = Dir[dir + '/*'].select {|f| f =~ /\.(mkv|avi)$/}.last
+
+sleep 1
+
+args = ['mplayer', file]
+args += ['-vf', "expand=0:-#{options[:padding]}:0:0"] if options[:padding]
+p args
+system(*args)

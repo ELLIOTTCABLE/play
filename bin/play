@@ -1,7 +1,16 @@
 #!/usr/bin/env ruby -wKu
 %w[rubygems optparse].each {|dep| require dep }
 
-Version = 2
+Version = 3
+Directories = [
+  '~/Downloads/News',
+  '~/Downloads/News/TV',
+  '/Volumes/MyBook/TV Shows',
+  '/Volumes/MyBook Two/TV Shows',
+  '/Volumes/MyBook Two/Movies',
+  '/Volumes/Drobo/Cinema',
+  '/Volumes/Drobo/Television'
+]
 
 options = Hash.new
 OptionParser.new do |opts|
@@ -18,6 +27,10 @@ A small script to, well, play something!
     options[:padding] = p
   end
   
+  opts.on("-l", "--[no-]latest", "Attempt to automatically play the latest episode of a TV show") do |l|
+    options[:latest] = l
+  end
+  
   opts.on_tail("--help", "Show this help") do
     puts opts
     exit
@@ -28,21 +41,29 @@ A small script to, well, play something!
   end
 end.parse!
 
-show = ARGV.join(' ')
-print "Playing the first show matching '#{show}': "
+query = ARGV.join(' ')
+# print "Playing the first show matching '#{query}': "
 
-shows = (Dir[File.expand_path('~/Downloads/News') + '/*'] + Dir[File.expand_path('~/Downloads/News/TV') + '/*']).map do |dir|
-  dir if dir =~ %r!#{File.expand_path('~/Downloads/News')}/#{show}!
-end.compact!
+media = Directories.map {|dir| 
+  Dir[File.expand_path(dir) + '/**/*.mkv'].
+    select {|file| file.include? query } . # Only include relevant results …
+    select {|file| File.size(file) > 104_857_600 } . # … that are > 100mb …
+    sort.reverse
+} .flatten
 
-dir = shows.sort.last
-puts dir
+if options[:latest]
+  f = media.first
+else
+  media.each.with_index do |file, i|
+    name = file.split(File::Separator)[-2..-1].join(File::Separator)
+    puts "#{(i + 1).to_s.rjust(3, "0")}. #{name}"
+  end
+  
+  print "Please select one: "
+  f = media[STDIN.gets.chomp.to_i - 1]
+end
 
-file = Dir[dir + '/*'].select {|f| f =~ /\.(mkv|avi)$/}.last
-
-sleep 1
-
-args = ['mplayer', file]
+args = ['mplayer', f]
 args += ['-vf', "expand=0:-#{options[:padding]}:0:0"] if options[:padding]
 p args
 system(*args)

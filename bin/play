@@ -19,6 +19,7 @@ OptionParser.new do |opts|
 A small script to, well, play something!
 
 == Usage ==
+`play [options] /path/to/file`
 `play [options] Show Name`
 `play [options] Movie name`
 "
@@ -51,7 +52,9 @@ media = Directories.map {|dir|
     sort.reverse
 } .flatten
 
-if options[:latest]
+if File.file? File.expand_path(query)
+  f = File.expand_path(query)
+elsif options[:latest]
   f = media.first
 else
   media.each.with_index do |file, i|

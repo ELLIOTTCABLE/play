@@ -53,8 +53,10 @@ media = Directories.map {|dir|
 if File.file? File.expand_path(query)
   f = File.expand_path(query)
 elsif options[:latest]
+  raise "Nothing found" if media.empty?
   f = media.first
 else
+  raise "Nothing found" if media.empty?
   media.each.with_index do |file, i|
     name = file.split(File::Separator)[-2..-1].join(File::Separator)
     puts "#{(i + 1).to_s.rjust(3, "0")}. #{name}"

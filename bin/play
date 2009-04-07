@@ -71,7 +71,7 @@ else
   f = media[STDIN.gets.chomp.to_i - 1]
 end
 
-args = ['mplayer-mt', f]
+args = ['/usr/local/mplayer-mt/bin/mplayer', f]
 args += ['-vf', "expand=0:-#{options[:padding]}:0:0"] if options[:padding]
 args += ['-ss', options[:spot].to_s] if options[:spot]
 p args

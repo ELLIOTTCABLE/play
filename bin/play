@@ -3,6 +3,7 @@
 
 Version = 3
 Directories = [
+  '~/Downloads/News',
   '/Volumes/Drobo/Downloads',
   '/Volumes/Drobo/Cinema',
   '/Volumes/Drobo/Television',

@@ -31,6 +31,10 @@ A small script to, well, play something!
     options[:latest] = l
   end
   
+  opts.on("-s", "--spot SPOT", Float, "Start at a particular seconds marker") do |s|
+    options[:spot] = s
+  end
+  
   opts.on_tail("--help", "Show this help") do
     puts opts
     exit
@@ -69,5 +73,6 @@ end
 
 args = ['mplayer-mt', f]
 args += ['-vf', "expand=0:-#{options[:padding]}:0:0"] if options[:padding]
+args += ['-ss', options[:spot].to_s] if options[:spot]
 p args
 system(*args)

@@ -11,6 +11,8 @@ Banner = "\
 @#=== `play`
 It's awesome, and you know it.
 
+Run `ri Play` for more information.
+
 @#=-- Usage:
 `play [options] ~/path/to/a/file`
 `play [options] A Movie`

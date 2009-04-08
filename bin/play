@@ -1,37 +1,48 @@
-#!/usr/bin/env ruby -wKu
-%w[rubygems optparse].each {|dep| require dep }
+#!/usr/bin/ruby -Ku
+($:.unshift File.expand_path(File.join( File.dirname(__FILE__), '..', 'lib' )) ).uniq!
+%w[rubygems optparse play].each {|dep| require dep }
 
-Version = 3
-Directories = [
-  '~/Downloads/News',
-  '/Volumes/Drobo/Downloads',
-  '/Volumes/Drobo/Cinema',
-  '/Volumes/Drobo/Television',
-  '/Volumes/Drobo/Badly Formatted/Cinema',
-  '/Volumes/Drobo/Badly Formatted/Television'
-]
+ConfigurationDirectory = File.expand_path '~/.play/'
 
-options = Hash.new
-OptionParser.new do |opts|
-  opts.banner = "\
-= `play` =
-A small script to, well, play something!
+Dir[File.join(ConfigurationDirectory, '**.rb')].each {|file| require file }
+Play::Configuration.default ||= Play::Configuration.load File.join(ConfigurationDirectory, 'config.yaml') if File.exists? File.join(ConfigurationDirectory, 'config.yaml')
 
-== Usage ==
-`play [options] /path/to/file`
-`play [options] Show Name`
-`play [options] Movie name`
+Banner = "\
+@#=== `play`
+It's awesome, and you know it.
+
+@#=-- Usage:
+`play [options] ~/path/to/a/file`
+`play [options] A Movie`
+`play [options] A Show S04E10`
+`play [options] A Show 4x10`
+
+@#=-- Options:
 "
+
+options = Play::Configuration.new
+OptionParser.new do |opts|
+  opts.banner = Banner
   
-  opts.on("-p", "--padding PADDING", Integer, "Adjust padding to centre video onscreen") do |p|
-    options[:padding] = p
+  opts.on("-p", "--padding PADDING", Integer, "Adjust padding to centre video (all sides)") do |p|
+    [:top, :left, :bottom, :right].each do |side|
+      options[[:padding, side].join('_').intern] = p
+    end
   end
   
-  opts.on("-l", "--[no-]latest", "Attempt to automatically play the latest episode of a TV show") do |l|
+  [:top, :left, :bottom, :right].each do |side|
+    opts.on("-p" + side[0], "--padding-#{side} PADDING", Integer, "Adjust padding to centre video (#{side} padding only)") do |p|
+      [:top, :left, :bottom, :right].each do |side|
+        options[[:padding, side].join('_').intern] = p
+      end
+    end
+  end
+  
+  opts.on("-l", "--[no-]latest", "Automatically play the latest available piece of media") do |l|
     options[:latest] = l
   end
   
-  opts.on("-s", "--spot SPOT", Float, "Start at a particular seconds marker") do |s|
+  opts.on("-s", "--skip-to SPOT", Float, "Start at a specified position in playpack (in seconds)") do |s|
     options[:spot] = s
   end
   
@@ -40,39 +51,18 @@ A small script to, well, play something!
     exit
   end
   opts.on_tail("--version", "Show version") do
-    puts "I'm play #{Version}!"
+    puts "I'm `play` version #{Play::Version}, configured to play media using `#{options[:player]}`!"
     exit
   end
 end.parse!
 
+# TODO: Abstract this out. This is hardcoded to support television shows'
+# season and episode numbers, and a specific format for said numbers at that.
+# That should really be configured in a ~/.play/*.rb file, for any media type.
 query = ARGV.join(' ')
-# print "Playing the first show matching '#{query}': "
+bits = query.match(/^(.*?)(?: (?:(?:S(\d+))?(?:E(\d+))?|(\d*)x(\d*)))?$/i)
+query = bits[1]
+season = (bits[2].nil? || bits[2].empty?) ? ((bits[4].nil? || bits[4].empty?) ? nil : bits[4]) : bits[2]
+episode = (bits[3].nil? || bits[3].empty?) ? ((bits[5].nil? || bits[5].empty?) ? nil : bits[5]) : bits[3]
 
-media = Directories.map {|dir| 
-  Dir[File.expand_path(dir) + '/**/*.mkv'].
-    select {|file| file.include? query } . # Only include relevant results …
-    select {|file| File.size(file) > 104_857_600 } . # … that are > 100mb …
-    sort.reverse
-} .flatten
-
-if File.file? File.expand_path(query)
-  f = File.expand_path(query)
-elsif options[:latest]
-  raise "Nothing found" if media.empty?
-  f = media.first
-else
-  raise "Nothing found" if media.empty?
-  media.each.with_index do |file, i|
-    name = file.split(File::Separator)[-2..-1].join(File::Separator)
-    puts "#{(i + 1).to_s.rjust(3, "0")}. #{name}"
-  end
-  
-  print "Please select one: "
-  f = media[STDIN.gets.chomp.to_i - 1]
-end
-
-args = ['/usr/local/mplayer-mt/bin/mplayer', f]
-args += ['-vf', "expand=0:-#{options[:padding]}:0:0"] if options[:padding]
-args += ['-ss', options[:spot].to_s] if options[:spot]
-p args
-system(*args)
+Play [query, season, episode], options

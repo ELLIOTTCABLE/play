@@ -33,14 +33,12 @@ OptionParser.new do |opts|
   end
   
   [:top, :left, :bottom, :right].each do |side|
-    opts.on("-p" + side[0], "--padding-#{side} PADDING", Integer, "Adjust padding to centre video (#{side} padding only)") do |p|
-      [:top, :left, :bottom, :right].each do |side|
-        options[[:padding, side].join('_').intern] = p
-      end
+    opts.on("-" + side.to_s, "--padding-#{side} PADDING", Integer, "Adjust padding to centre video (#{side} padding only)") do |p|
+      options[[:padding, side].join('_').intern] = p
     end
   end
   
-  opts.on("-l", "--[no-]latest", "Automatically play the latest available piece of media") do |l|
+  opts.on("-L", "--[no-]latest", "Automatically play the latest available piece of media") do |l|
     options[:latest] = l
   end
   

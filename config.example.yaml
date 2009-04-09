@@ -1,0 +1,12 @@
+---
+:directories:
+- ~/Movies
+
+:extensions:
+- mov
+- mkv
+- avi
+- mp4
+- wmv
+
+:player: mplayer

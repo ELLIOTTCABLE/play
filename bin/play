@@ -1,11 +1,12 @@
 #!/usr/bin/ruby -Ku
 ($:.unshift File.expand_path(File.join( File.dirname(__FILE__), '..', 'lib' )) ).uniq!
-%w[rubygems optparse play].each {|dep| require dep }
+%w[rubygems optparse fileutils play].each {|dep| require dep }
 
-ConfigurationDirectory = File.expand_path '~/.play/'
+ConfigurationDirectory = File.expand_path '~/.play'
+ConfigurationFile = File.join(ConfigurationDirectory, 'config.yaml')
 
 Dir[File.join(ConfigurationDirectory, '**.rb')].each {|file| require file }
-Play::Configuration.default ||= Play::Configuration.load File.join(ConfigurationDirectory, 'config.yaml') if File.exists? File.join(ConfigurationDirectory, 'config.yaml')
+Play::Configuration.default ||= Play::Configuration.load ConfigurationFile if ConfigurationFile
 
 Banner = "\
 @#=== `play`
@@ -46,6 +47,11 @@ OptionParser.new do |opts|
     options[:spot] = s
   end
   
+  opts.on_tail("--init", "Create a configuration directory") do
+    FileUtils.mkdir_p ConfigurationDirectory
+    FileUtils.cp_r File.expand_path(File.join(File.dirname(__FILE__), '..', 'config.example.yaml')), ConfigurationFile unless File.file? ConfigurationFile
+    exit
+  end
   opts.on_tail("--help", "Show this help") do
     puts opts
     exit

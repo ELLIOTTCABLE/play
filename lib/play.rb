@@ -20,6 +20,8 @@ module Play
       queries.all? {|a| a.any? {|e| file.include? e }}
     end.reject {|file| file =~ /sample/i }
     
+    raise ArgumentError, "Your query matched nothing" if files.empty?
+    
     if options[:latest]
       # TODO: This should really parse the episode number and shit.
       file = files.sort {|f1, f2| File.size(f1) <=> File.size(f2) }.last

@@ -3,7 +3,7 @@ require 'play/configuration'
 ##
 # `Play` is a simple system for playing media from the command line.
 module Play
-  Version = 4
+  Version = 5
   
   ##
   # This method is responsible for ferreting out a particular piece of media,

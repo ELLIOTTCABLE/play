@@ -1,0 +1,7 @@
+bin/play
+config.example.yaml
+lib/play/configuration.rb
+lib/play.rb
+Rakefile.rb
+README.markdown
+.manifest

@@ -3,7 +3,7 @@
 Gem::Specification.new do |s|
   s.name = %q{play}
   s.version = "4"
-
+  
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["elliottcable"]
   s.date = %q{2009-04-09}
@@ -20,11 +20,11 @@ Gem::Specification.new do |s|
   s.rubyforge_project = %q{play}
   s.rubygems_version = %q{1.3.1}
   s.summary = %q{Playing media LIKE A BOSS}
-
+  
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 2
-
+    
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_development_dependency(%q<echoe>, [">= 0", "= 3.0.2"])
     else
